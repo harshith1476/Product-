@@ -1,0 +1,4 @@
+Checking appointments table schema for session and token_number...
+Current columns: ['id', 'user_id', 'doctor_id', 'slot_date', 'slot_time', 'user_data', 'doctor_data', 'amount', 'consultation_fee', 'platform_fee', 'gst', 'cost_breakdown', 'date', 'cancelled', 'payment', 'payment_status', 'transaction_id', 'upi_transaction_id', 'payer_vpa', 'payment_timestamp', 'payment_method', 'is_completed', 'token_number', 'queue_position', 'estimated_wait_time', 'actual_start_time', 'actual_end_time', 'consultation_duration', 'status', 'is_delayed', 'delay_reason', 'alerted', 'selected_symptoms', 'actual_patient_name', 'actual_patient_age', 'actual_patient_gender', 'actual_patient_relationship', 'actual_patient_medical_history', 'actual_patient_symptoms', 'actual_patient_phone', 'actual_patient_is_self', 'recent_prescription', 'mode', 'created_at', 'updated_at', 'session']
+Column 'session' EXISTS
+Column 'token_number' EXISTS

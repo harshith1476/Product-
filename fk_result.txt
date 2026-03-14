@@ -1,0 +1,3 @@
+Foreign Keys for appointments:
+user_id -> users(id)
+doctor_id -> doctors(id)
