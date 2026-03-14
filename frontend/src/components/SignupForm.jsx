@@ -306,7 +306,7 @@ export function SignupForm({ className, ...props }) {
         <div className="grid p-0 md:grid-cols-2">
           {/* Form Section */}
           <form onSubmit={handleSubmit} className="p-4 md:p-6 space-y-3">
-            <div className="flex flex-col items-center gap-1 text-center mb-4 anim-header">
+            <div className="flex flex-col items-center gap-1 text-center mb-2 anim-header">
               <h1 className="text-xl font-bold text-gray-900">Create Account</h1>
               <p className="text-gray-600 text-xs">
                 Sign up for your MediChain+ account
@@ -334,7 +334,7 @@ export function SignupForm({ className, ...props }) {
                       setErrors({ ...errors, name: '' })
                     }}
                     placeholder="Full Name"
-                    className={`w-full pl-10 pr-4 py-3 rounded-lg border focus:outline-none transition-all bg-white ${errors.name
+                    className={`w-full pl-10 pr-4 py-2 rounded-lg border focus:outline-none transition-all bg-white ${errors.name
                       ? 'border-red-500 focus:border-red-600 bg-red-50'
                       : 'border-gray-200 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20'
                       }`}
@@ -367,7 +367,7 @@ export function SignupForm({ className, ...props }) {
                     }}
                     placeholder="Phone Number"
                     maxLength={15}
-                    className={`w-full pl-10 pr-4 py-3 rounded-lg border focus:outline-none transition-all bg-white ${errors.phone
+                    className={`w-full pl-10 pr-4 py-2 rounded-lg border focus:outline-none transition-all bg-white ${errors.phone
                       ? 'border-red-500 focus:border-red-600 bg-red-50'
                       : 'border-gray-200 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20'
                       }`}
@@ -401,7 +401,7 @@ export function SignupForm({ className, ...props }) {
                       setErrors({ ...errors, email: '' })
                     }}
                     placeholder="Enter your email"
-                    className={`w-full pl-10 pr-4 py-3 rounded-lg border focus:outline-none transition-all bg-white ${errors.email
+                    className={`w-full pl-10 pr-4 py-2 rounded-lg border focus:outline-none transition-all bg-white ${errors.email
                       ? 'border-red-500 focus:border-red-600 bg-red-50'
                       : 'border-gray-200 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20'
                       }`}
@@ -432,7 +432,7 @@ export function SignupForm({ className, ...props }) {
                       setErrors({ ...errors, dob: '' })
                     }}
                     max={new Date().toISOString().split('T')[0]}
-                    className={`w-full pl-10 pr-4 py-3 rounded-lg border focus:outline-none transition-all bg-white ${errors.dob
+                    className={`w-full pl-10 pr-4 py-2 rounded-lg border focus:outline-none transition-all bg-white ${errors.dob
                       ? 'border-red-500 focus:border-red-600 bg-red-50'
                       : 'border-gray-200 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20'
                       }`}
@@ -466,7 +466,7 @@ export function SignupForm({ className, ...props }) {
                       setErrors({ ...errors, password: '' })
                     }}
                     placeholder="Password"
-                    className={`w-full pl-10 pr-12 py-3 rounded-lg border focus:outline-none transition-all bg-white ${errors.password
+                    className={`w-full pl-10 pr-12 py-2 rounded-lg border focus:outline-none transition-all bg-white ${errors.password
                       ? 'border-red-500 focus:border-red-600 bg-red-50'
                       : 'border-gray-200 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20'
                       }`}
@@ -511,7 +511,7 @@ export function SignupForm({ className, ...props }) {
                       setGender(e.target.value)
                       setErrors({ ...errors, gender: '' })
                     }}
-                    className={`w-full pl-10 pr-10 py-3 rounded-lg border focus:outline-none transition-all appearance-none bg-white ${errors.gender
+                    className={`w-full pl-10 pr-10 py-2 rounded-lg border focus:outline-none transition-all appearance-none bg-white ${errors.gender
                       ? 'border-red-500 focus:border-red-600 bg-red-50'
                       : 'border-gray-200 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20'
                       }`}
@@ -549,7 +549,7 @@ export function SignupForm({ className, ...props }) {
                   id="bloodGroup"
                   value={bloodGroup}
                   onChange={(e) => setBloodGroup(e.target.value)}
-                  className="w-full pl-10 pr-10 py-3 rounded-lg border border-gray-200 bg-white focus:outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20 transition-all appearance-none"
+                  className="w-full pl-10 pr-10 py-2 rounded-lg border border-gray-200 bg-white focus:outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20 transition-all appearance-none"
                 >
                   <option value="">Blood Group (Optional)</option>
                   <option value="A+">A+</option>
@@ -574,7 +574,7 @@ export function SignupForm({ className, ...props }) {
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full py-3 bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white font-semibold rounded-lg shadow-md hover:shadow-xl hover:-translate-y-0.5 transition-all duration-200 flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
+                className="w-full py-2 bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white font-semibold rounded-lg shadow-md hover:shadow-xl hover:-translate-y-0.5 transition-all duration-200 flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
               >
                 {isLoading ? (
                   <>

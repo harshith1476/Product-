@@ -266,9 +266,9 @@ export function LoginForm({ className, ...props }) {
         style={{ animation: 'slideUp 0.5s cubic-bezier(0.4,0,0.2,1) both' }}>
         <div className="grid p-0 md:grid-cols-2">
           {/* Form Section */}
-          <form onSubmit={handleSubmit} className="p-6 md:p-8 space-y-6">
-            <div className="flex flex-col items-center gap-2 text-center mb-6 anim-header">
-              <h1 className="text-2xl font-bold text-gray-900">Welcome back</h1>
+          <form onSubmit={handleSubmit} className="p-6 md:p-8 space-y-4">
+            <div className="flex flex-col items-center gap-2 text-center mb-4 anim-header">
+              <h1 className="text-xl font-bold text-gray-900">Welcome back</h1>
               <p className="text-gray-600 text-sm">
                 Login to your MediChain+ account
               </p>
@@ -276,7 +276,7 @@ export function LoginForm({ className, ...props }) {
 
             {/* Email Field */}
             <div style={{ animation: 'slideUp 0.45s 0.12s cubic-bezier(0.4,0,0.2,1) both' }}>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
                 Email
               </label>
               <div className="relative">
@@ -308,7 +308,7 @@ export function LoginForm({ className, ...props }) {
 
             {/* Password Field */}
             <div style={{ animation: 'slideUp 0.45s 0.22s cubic-bezier(0.4,0,0.2,1) both' }}>
-              <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center justify-between mb-1">
                 <label htmlFor="password" className="block text-sm font-medium text-gray-700">
                   Password
                 </label>
