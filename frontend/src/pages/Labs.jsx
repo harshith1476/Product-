@@ -44,7 +44,7 @@ const Labs = () => {
   const [isBloodLoading, setIsBloodLoading] = useState(true);
   const [selectedLab, setSelectedLab] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  
+
   const [labs, setLabs] = useState([]);
   const [bloodBanks, setBloodBanks] = useState([]);
   const [viewMode, setViewMode] = useState('all'); // 'all' or 'nearby'
@@ -98,7 +98,7 @@ const Labs = () => {
     try {
       const location = await getUserLocation();
       setUserLocation(location);
-      
+
       // Fetch nearby labs from API
       const labsRes = await axios.get(`${backendUrl}/api/lab/nearby`, {
         params: { lat: location.lat, lng: location.lon }
@@ -114,7 +114,7 @@ const Labs = () => {
       if (bloodRes.data.success) {
         setBloodBanks(bloodRes.data.bloodBanks);
       }
-      
+
       toast.success("Found nearest centers for you!");
     } catch (error) {
       console.error("Error finding nearby:", error);
@@ -156,7 +156,7 @@ const Labs = () => {
   return (
     <div className="min-h-screen bg-white pb-20 pt-24 sm:pt-28 relative overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-        
+
         {/* Breadcrumb Navigation */}
         <div className='mb-6 flex items-center gap-4'>
           <BackArrow />
@@ -185,8 +185,8 @@ const Labs = () => {
             <button
               onClick={() => setActiveTab('labs')}
               className={`flex items-center gap-2 px-6 py-2 rounded-full text-xs font-bold transition-all duration-300 ${activeTab === 'labs'
-                  ? 'bg-blue-600 text-white shadow-lg'
-                  : 'text-gray-500 hover:bg-white/30'
+                ? 'bg-blue-600 text-white shadow-lg'
+                : 'text-gray-500 hover:bg-white/30'
                 }`}
             >
               <Beaker size={14} />
@@ -195,8 +195,8 @@ const Labs = () => {
             <button
               onClick={() => setActiveTab('blood')}
               className={`flex items-center gap-2 px-6 py-2 rounded-full text-xs font-bold transition-all duration-300 ${activeTab === 'blood'
-                  ? 'bg-blue-600 text-white shadow-md'
-                  : 'text-gray-500 hover:bg-gray-200/50'
+                ? 'bg-blue-600 text-white shadow-md'
+                : 'text-gray-500 hover:bg-gray-200/50'
                 }`}
             >
               <Droplets size={14} />
@@ -230,9 +230,9 @@ const Labs = () => {
 
               <div className="mt-8">
                 {isLabsLoading ? (
-                   <div className="flex justify-center items-center py-20">
-                     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-                   </div>
+                  <div className="flex justify-center items-center py-20">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+                  </div>
                 ) : filteredLabs.length > 0 ? (
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-6">
                     {filteredLabs.map((lab) => (

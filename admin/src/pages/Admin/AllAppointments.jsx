@@ -370,6 +370,7 @@ const AllAppointments = () => {
                         <th style={{ width: '180px' }}>Date &amp; Time</th>
                         <th>Doctor</th>
                         <th style={{ width: '80px', textAlign: 'center' }}>Fees</th>
+                        <th style={{ width: '100px', textAlign: 'center' }}>Payment</th>
                         <th style={{ width: '160px', textAlign: 'center' }}>Actions</th>
                       </tr>
                     </thead>
@@ -470,6 +471,17 @@ const AllAppointments = () => {
                             <td style={{ textAlign: 'center' }}>
                               <span className='font-bold text-gray-800 text-sm whitespace-nowrap'>
                                 {currency}{item.amount}
+                              </span>
+                            </td>
+
+                            {/* Payment Status */}
+                            <td style={{ textAlign: 'center' }}>
+                              <span className={`inline-flex items-center justify-center px-2 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${
+                                item.payment 
+                                  ? 'bg-green-100 text-green-700 border border-green-200' 
+                                  : 'bg-orange-100 text-orange-700 border border-orange-200'
+                              }`}>
+                                {item.payment ? 'Online' : 'CASH'}
                               </span>
                             </td>
 
@@ -687,7 +699,12 @@ const AllAppointments = () => {
                         </div>
 
                         <div className='flex items-center justify-between mt-4 pt-3 border-t border-gray-200'>
-                          <span className='text-lg sm:text-xl font-bold text-indigo-600'>{currency}{item.amount}</span>
+                          <div className='flex flex-col'>
+                            <span className='text-lg sm:text-xl font-bold text-indigo-600'>{currency}{item.amount}</span>
+                            <span className={`text-[10px] uppercase tracking-wider font-bold ${item.payment ? 'text-green-600' : 'text-orange-600'}`}>
+                              {item.payment ? 'Payment: Online' : 'Payment: CASH'}
+                            </span>
+                          </div>
                           {item.cancelled ? (
                             <span className='px-3 sm:px-4 py-1.5 bg-red-100 text-red-600 text-xs sm:text-sm font-semibold rounded-lg'>Cancelled</span>
                           ) : item.isCompleted ? (

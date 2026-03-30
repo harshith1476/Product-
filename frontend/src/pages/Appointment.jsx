@@ -116,6 +116,29 @@ const Appointment = () => {
         setDocInfo(docInfo)
     }
 
+    // Extract MD/MBBS/MS from name or add it based on variety
+    const getDoctorNameWithMD = (name, index, degree) => {
+        if (!name) return 'Doctor'
+        const degrees = ['MD', 'MBBS', 'MS']
+        
+        // Use degree if provided, else rotate based on index, else default to 'MD'
+        let deg = degree;
+        if (!deg) {
+            const idx = typeof index === 'number' ? index : 0;
+            deg = degrees[idx % degrees.length];
+        }
+        if (!deg) deg = 'MD';
+
+        // Add degree in parentheses if not already present
+        let formattedName = name;
+        if (!name.includes(`(${deg})`)) {
+            formattedName = `${name} (${deg})`;
+        }
+        
+        // Ensure "Dr. " prefix
+        return formattedName.startsWith('Dr.') ? formattedName : `Dr. ${formattedName}`;
+    }
+
     const getAvailableSolts = async () => {
         // Safety check: ensure docInfo exists before processing
         if (!docInfo) {
@@ -290,7 +313,7 @@ const Appointment = () => {
 
                 if (data && data.success && data.order) {
                     const options = {
-                        key: process.env.REACT_APP_RAZORPAY_KEY_ID || data.order.key_id,
+                        key: data.order.key_id || import.meta.env.VITE_RAZORPAY_KEY_ID,
                         amount: data.order.amount,
                         currency: data.order.currency,
                         name: "MediChain",
@@ -299,7 +322,9 @@ const Appointment = () => {
                         handler: async function (response) {
                             try {
                                 const verifyResponse = await axios.post(backendUrl + '/api/user/verifyRazorpay', {
-                                    razorpay_order_id: response.razorpay_order_id
+                                    razorpay_order_id: response.razorpay_order_id,
+                                    razorpay_payment_id: response.razorpay_payment_id,
+                                    razorpay_signature: response.razorpay_signature
                                 }, {
                                     headers: { token }
                                 })
@@ -316,7 +341,7 @@ const Appointment = () => {
                                         state: { 
                                             appointmentData: {
                                                 patientName: patientData?.name || userData?.name || 'Patient',
-                                                providerName: docInfo?.name || 'Doctor',
+                                                providerName: getDoctorNameWithMD(docInfo?.name, docInfo?.degree || docInfo?.qualification),
                                                 providerType: 'doctor',
                                                 service: docInfo?.speciality || 'General Consultation',
                                                 date: date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }),
@@ -522,7 +547,7 @@ const Appointment = () => {
                 const ticketData = {
                     id: appointmentId,
                     patientName: displayPatientName || 'Patient',
-                    doctorName: docInfo?.name || 'Doctor',
+                    doctorName: getDoctorNameWithMD(docInfo?.name, docInfo?.degree || docInfo?.qualification),
                     doctorSpecialty: docInfo?.speciality || docInfo?.specialization || 'General Medicine',
                     date: date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }),
                     day: daysOfWeek[date.getDay()] || 'N/A',
@@ -549,7 +574,7 @@ const Appointment = () => {
                         state: { 
                             appointmentData: {
                                 patientName: displayPatientName || 'Patient',
-                                providerName: docInfo?.name || 'Doctor',
+                                providerName: getDoctorNameWithMD(docInfo?.name, docInfo?.degree || docInfo?.qualification),
                                 providerType: 'doctor',
                                 service: docInfo?.speciality || 'General Consultation',
                                 date: date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }),
@@ -571,46 +596,7 @@ const Appointment = () => {
                         setIsBooking(false)
                         return
                     }
-                    try {
-                        const amount = costBreakdown.total || docInfo?.fees || 0
-                        const { data: payuData } = await axios.post(
-                            backendUrl + '/api/user/payment-payu/init',
-                            {
-                                appointmentId: onlineAppointmentId.toString(),
-                                amount: parseFloat(amount),
-                                productinfo: 'Appointment Payment',
-                                firstname: displayPatientName || userData?.name || 'Patient',
-                                email: userData?.email || '',
-                                phone: userData?.phone || ''
-                            },
-                            { headers: { token } }
-                        )
-                        if (!payuData?.success || !payuData?.paymentData?.payuUrl) {
-                            toast.error(payuData?.message || 'Failed to initialize payment')
-                            setIsBooking(false)
-                            return
-                        }
-                        const payuForm = document.createElement('form')
-                        payuForm.method = 'POST'
-                        payuForm.action = payuData.paymentData.payuUrl
-                        payuForm.style.display = 'none'
-                        Object.keys(payuData.paymentData).forEach(key => {
-                            if (key !== 'payuUrl' && payuData.paymentData[key] != null) {
-                                const input = document.createElement('input')
-                                input.type = 'hidden'
-                                input.name = key
-                                input.value = String(payuData.paymentData[key])
-                                payuForm.appendChild(input)
-                            }
-                        })
-                        document.body.appendChild(payuForm)
-                        toast.info('Redirecting to payment gateway...', { autoClose: 2000 })
-                        setTimeout(() => payuForm.submit(), 500)
-                    } catch (err) {
-                        console.error('PayU init error:', err)
-                        toast.error(err?.response?.data?.message || 'Failed to redirect to payment. Please try again.')
-                        setIsBooking(false)
-                    }
+                    await processPayment(onlineAppointmentId.toString(), selectedPaymentGateway || 'razorpay')
                 }
             } else {
                 const errorMessage = data?.message || 'Failed to book appointment. Please try again.'
@@ -782,14 +768,14 @@ const Appointment = () => {
                         {/* Doctor Info */}
                         <div className='flex-1 min-w-0'>
                             <div className='flex items-start gap-2 flex-wrap justify-center lg:justify-start'>
-                                <h1 className='text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 text-center lg:text-left'>
-                                    {docInfo?.name || 'Doctor'}
+                                <h1 className='text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 leading-tight'>
+                                    {getDoctorNameWithMD(docInfo?.name, 0, docInfo?.degree || docInfo?.qualification)}
                                 </h1>
                                 <img className='w-5 h-5 mt-1' src={assets.verified_icon} alt="Verified" />
                             </div>
 
                             <div className='flex items-center gap-2 sm:gap-3 mt-2 flex-wrap justify-center lg:justify-start'>
-                                <p className='text-gray-600 text-sm sm:text-base'>{docInfo?.degree || 'MBBS, MD'} - {docInfo?.speciality || docInfo?.specialization || 'General Medicine'}</p>
+                                <p className='text-gray-600 text-sm sm:text-base'>{docInfo?.speciality || docInfo?.specialization || 'General Medicine'}</p>
                                 {(() => {
                                     const badge = getExperienceBadge(docInfo?.experience || 0)
                                     return (

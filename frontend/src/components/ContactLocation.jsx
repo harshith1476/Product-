@@ -124,7 +124,7 @@ const ContactLocation = () => {
                             {/* CTA Buttons */}
                             <div className='flex flex-col sm:flex-row gap-3 mt-6 sm:mt-8 pt-5 border-t border-gray-100'>
                                 <button
-                                    onClick={() => navigate('/doctors')}
+                                    onClick={() => navigate('/hospitals')}
                                     className='flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 px-5 rounded-xl transition-all duration-200 shadow-sm hover:shadow-md flex items-center justify-center gap-2 text-sm'
                                 >
                                     <svg className='w-4 h-4' fill='none' stroke='currentColor' viewBox='0 0 24 24'>

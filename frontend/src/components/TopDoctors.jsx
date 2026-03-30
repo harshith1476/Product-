@@ -9,6 +9,29 @@ const TopDoctors = () => {
     const { doctors, isDoctorsLoading } = useContext(AppContext)
     const navigate = useNavigate()
 
+    // Extract MD/MBBS/MS from name or add it based on variety
+    const getDoctorNameWithMD = (name, index, degree) => {
+        if (!name) return 'Doctor'
+        const degrees = ['MD', 'MBBS', 'MS']
+        
+        // Use degree if provided, else rotate based on index, else default to 'MD'
+        let deg = degree;
+        if (!deg || deg === 'undefined') {
+            const idx = typeof index === 'number' ? index : 0;
+            deg = degrees[idx % degrees.length];
+        }
+        if (!deg) deg = 'MD';
+
+        // Add degree in parentheses if not already present
+        let formattedName = name;
+        if (name && !name.includes(`(${deg})`)) {
+            formattedName = `${name} (${deg})`;
+        }
+        
+        // Ensure "Dr. " prefix
+        return formattedName.startsWith('Dr.') ? formattedName : `Dr. ${formattedName}`;
+    }
+
     // Sort doctors: Available first, then unavailable
     const sortedDoctors = [...doctors].sort((a, b) => {
         if (!a || !b) return 0 // Null safety check
@@ -60,7 +83,7 @@ const TopDoctors = () => {
                                 {/* Card Content */}
                                 <div className='top-doctor-content'>
                                     <h3 className='top-doctor-name'>
-                                        {item.name}
+                                        {getDoctorNameWithMD(item.name, index, item.degree || item.qualification)}
                                     </h3>
                                     <div className='mb-2'>
                                         <span className='inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gradient-to-r from-cyan-500 to-blue-600 text-white text-xs font-bold shadow-md'>

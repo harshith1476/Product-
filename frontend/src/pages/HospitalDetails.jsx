@@ -77,11 +77,27 @@ const HospitalDetails = () => {
         return expertiseMap[specialty] || `With extensive experience in ${specialty} and providing quality healthcare services`
     }
 
-    // Extract MD from name or add it
-    const getDoctorNameWithMD = (name) => {
-        if (name && name.includes('MD')) return name
-        if (name && name.includes('Dr.')) return `${name}, MD`
-        return `Dr. ${name}, MD`
+    // Extract MD/MBBS/MS from name or add it based on variety
+    const getDoctorNameWithMD = (name, index, degree) => {
+        if (!name) return 'Doctor'
+        const degrees = ['MD', 'MBBS', 'MS']
+        
+        // Use degree if provided, else rotate based on index, else default to 'MD'
+        let deg = degree;
+        if (!deg || deg === 'undefined') {
+            const idx = typeof index === 'number' ? index : 0;
+            deg = degrees[idx % degrees.length];
+        }
+        if (!deg) deg = 'MD';
+
+        // Add degree in parentheses if not already present
+        let formattedName = name;
+        if (name && !name.includes(`(${deg})`)) {
+            formattedName = `${name} (${deg})`;
+        }
+        
+        // Ensure "Dr. " prefix
+        return formattedName.startsWith('Dr.') ? formattedName : `Dr. ${formattedName}`;
     }
 
     const handleBookAppointment = (doctor) => {
@@ -319,8 +335,8 @@ const HospitalDetails = () => {
                                             </div>
 
                                             {/* Name and Degree */}
-                                            <h3 className="text-sm font-bold text-gray-900 mb-1 line-clamp-2 text-center w-full">
-                                                {getDoctorNameWithMD(doctor.name)}
+                                             <h3 className="text-sm font-bold text-gray-900 mb-1 line-clamp-2 text-center w-full">
+                                                    {getDoctorNameWithMD(doctor.name, index, doctor.degree || doctor.qualification)}
                                             </h3>
 
                                             {/* Specialty/Title */}
@@ -328,26 +344,18 @@ const HospitalDetails = () => {
                                                 {getSpecialtyTitle(doctor.specialization || doctor.speciality || 'General Medicine')}
                                             </p>
 
-                                            {/* Qualification */}
-                                            {(doctor.qualification || doctor.degree) && (
-                                                <p className="text-[10px] text-gray-600 mb-2 line-clamp-1 text-center w-full">
-                                                    {doctor.qualification || doctor.degree || 'MBBS, MD'}
-                                                </p>
-                                            )}
+                                             {/* Qualification line removed as it's already in the name */}
 
-                                            {/* Expertise Description */}
-                                            <p className="text-[10px] text-gray-500 mb-3 leading-relaxed line-clamp-2 text-center w-full min-h-[32px]">
-                                                {getExpertiseText(doctor.specialization || doctor.speciality || 'General Medicine')}
-                                            </p>
+                                            {/* Expertise Description removed as requested */}
 
                                             {/* Book Appointment Button */}
                                             <button
                                                 disabled={!isAvailable}
                                                 onClick={() => handleBookAppointment(doctor)}
-                                                className={`w-full mt-auto py-2 px-3 rounded-lg text-xs font-semibold transition-all duration-200 flex items-center justify-center gap-1.5 shadow-sm hover:shadow-md flex-shrink-0 ${isAvailable
+                                                className={`w-full mt-auto h-11 px-3 rounded-lg text-sm font-bold transition-all duration-200 flex items-center justify-center gap-1.5 shadow-sm hover:shadow-md flex-shrink-0 ${isAvailable
                                                     ? 'bg-blue-600 hover:bg-blue-700 text-white'
                                                     : 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                                                    }`}
+                                                }`}
                                             >
                                                 <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />

@@ -28,7 +28,7 @@ import {
     getHospitalTieUpById as getHospitalTieUpByIdDB
 } from "../models/postgresModels.js";
 import * as queueService from '../services/queueService.js';
-import { sendAppointmentConfirmation, sendPasswordResetOTP, sendPasswordResetConfirmation } from "../services/emailService.js";
+import { sendAppointmentConfirmation, sendPasswordResetOTP, sendPasswordResetConfirmation, sendPaymentConfirmationEmail } from "../services/emailService.js";
 import Razorpay from "razorpay";
 import Stripe from "stripe";
 import crypto from 'crypto';
@@ -495,7 +495,7 @@ const verifyAppointment = async (req, res) => {
     }
 }
 
-// Payment Razorpay
+// Payment Razorpay - Create order
 const paymentRazorpay = async (req, res) => {
     try {
         const { appointmentId } = req.body;
@@ -503,39 +503,107 @@ const paymentRazorpay = async (req, res) => {
         if (!appointment || appointment.cancelled) return res.json({ success: false, message: "Invalid appointment" });
 
         const options = {
-            amount: Math.round(appointment.amount * 100),
+            amount: Math.round(parseFloat(appointment.amount) * 100), // amount in paise
             currency: process.env.CURRENCY || 'INR',
             receipt: appointment.id.toString(),
             notes: { appointmentId: appointment.id.toString() }
         };
 
         const order = await razorpayInstance.orders.create(options);
-        res.json({ success: true, order });
+
+        // Include key_id so the frontend can use it directly in Razorpay checkout
+        res.json({
+            success: true,
+            order: {
+                ...order,
+                key_id: process.env.RAZORPAY_KEY_ID
+            }
+        });
 
     } catch (error) {
-        console.log(error);
+        console.log('Razorpay create order error:', error);
         res.json({ success: false, message: error.message });
     }
 }
 
-// Verify Razorpay
+// Verify Razorpay - Validate HMAC signature and mark appointment as paid
 const verifyRazorpay = async (req, res) => {
     try {
         const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body;
-        // Verify signature (skip for brevity/simplicity in migration, but recommended)
 
-        // Find appointment by checking receipt in razorpay or just assume the one passed
-        // The original code used orderInfo.receipt. 
-        const orderInfo = await razorpayInstance.orders.fetch(razorpay_order_id);
-        if (orderInfo.status === 'paid' || orderInfo.status === 'created') { // Created until captured
-            const appointmentId = orderInfo.receipt;
-            await updateAppointmentDB(appointmentId, { payment: true, paymentMethod: 'Online', transactionId: razorpay_payment_id });
-            res.json({ success: true, message: "Payment Successful" });
-        } else {
-            res.json({ success: false, message: "Payment Failed" });
+        if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
+            return res.json({ success: false, message: 'Missing payment verification fields' });
         }
+
+        // --- Verify HMAC-SHA256 Signature ---
+        const expectedSignature = crypto
+            .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET)
+            .update(`${razorpay_order_id}|${razorpay_payment_id}`)
+            .digest('hex');
+
+        if (expectedSignature !== razorpay_signature) {
+            console.error('Razorpay signature mismatch!');
+            return res.json({ success: false, message: 'Payment verification failed: Invalid signature' });
+        }
+        // --- Signature verified ---
+
+        // Fetch order from Razorpay to get the appointmentId (stored in receipt)
+        const orderInfo = await razorpayInstance.orders.fetch(razorpay_order_id);
+        const appointmentId = orderInfo.receipt;
+
+        if (!appointmentId) {
+            return res.json({ success: false, message: 'Appointment ID not found in order receipt' });
+        }
+
+        // Fetch appointment details for the receipt
+        const appointment = await getAppointmentByIdDB(appointmentId);
+        if (!appointment) {
+            console.error(`❌ Appointment ${appointmentId} not found for receipt email`);
+        } else {
+            // Update appointment as paid
+            await updateAppointmentDB(appointmentId, {
+                payment: true,
+                paymentMethod: 'Online (Razorpay)',
+                transactionId: razorpay_payment_id,
+                status: 'confirmed'
+            });
+
+            // Send Payment Confirmation & Receipt Email
+            try {
+                const userData = appointment.user_data;
+                const docData = appointment.doctor_data;
+                const patientName = appointment.actual_patient_name || userData.name;
+
+                const paymentDetails = {
+                    patientName,
+                    doctorName: docData.name,
+                    speciality: docData.speciality || docData.specialization,
+                    appointmentDate: appointment.slot_date.replace(/_/g, '/'),
+                    appointmentTime: appointment.slot_time,
+                    amount: appointment.amount,
+                    transactionId: razorpay_payment_id,
+                    orderId: razorpay_order_id,
+                    paymentMethod: 'Razorpay Online',
+                    currency: process.env.CURRENCY || 'INR'
+                };
+
+                await sendPaymentConfirmationEmail(userData.email, paymentDetails);
+                console.log(`📧 Receipt email sent to ${userData.email} for appointment ${appointmentId}`);
+            } catch (emailErr) {
+                console.error('❌ Failed to send receipt email:', emailErr);
+            }
+        }
+
+        // Notify connected WebSocket clients
+        if (global.notifyPaymentSuccess) {
+            global.notifyPaymentSuccess(appointmentId);
+        }
+
+        console.log(`✅ Razorpay payment verified for appointment: ${appointmentId}`);
+        res.json({ success: true, message: 'Payment Successful' });
+
     } catch (error) {
-        console.log(error);
+        console.log('Razorpay verify error:', error);
         res.json({ success: false, message: error.message });
     }
 }
@@ -840,6 +908,34 @@ const verifyPayUPayment = async (req, res) => {
                 transactionId: txnid,
                 status: 'confirmed'
             });
+
+            // Send Payment Confirmation & Receipt Email
+            try {
+                const appointment = await getAppointmentByIdDB(finalAppointmentId);
+                if (appointment) {
+                    const userData = appointment.user_data;
+                    const docData = appointment.doctor_data;
+                    const patientName = appointment.actual_patient_name || userData.name;
+
+                    const paymentDetails = {
+                        patientName,
+                        doctorName: docData.name,
+                        speciality: docData.speciality || docData.specialization,
+                        appointmentDate: appointment.slot_date.replace(/_/g, '/'),
+                        appointmentTime: appointment.slot_time,
+                        amount: appointment.amount,
+                        transactionId: txnid,
+                        orderId: txnid, // For PayU we use txnid
+                        paymentMethod: 'PayU Online',
+                        currency: process.env.CURRENCY || 'INR'
+                    };
+
+                    await sendPaymentConfirmationEmail(userData.email, paymentDetails);
+                    console.log(`📧 PayU Receipt email sent to ${userData.email} for appointment ${finalAppointmentId}`);
+                }
+            } catch (emailErr) {
+                console.error('❌ Failed to send PayU receipt email:', emailErr);
+            }
 
             if (global.notifyPaymentSuccess) {
                 global.notifyPaymentSuccess(finalAppointmentId);

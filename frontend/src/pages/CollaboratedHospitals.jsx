@@ -458,10 +458,10 @@ const CollaboratedHospitals = () => {
                                                     e.stopPropagation();
                                                     const phoneStr = (hospital.contact && hospital.contact !== 'Not available') ? ` - Phone: ${hospital.contact}` : '';
                                                     toast.info(`${hospital.name}${phoneStr}`, { position: "top-center", autoClose: 3000 });
-                                                    
+
                                                     const lat = hospital.coordinates?.lat || hospital.latitude;
                                                     const lon = hospital.coordinates?.lon || hospital.longitude;
-                                                    
+
                                                     if (lat && lon) {
                                                         window.open(`https://www.google.com/maps/search/?api=1&query=${lat},${lon}`, '_blank');
                                                     } else {
@@ -478,7 +478,7 @@ const CollaboratedHospitals = () => {
                                                 Open Maps
                                             </button>
                                         </div>
-                                        
+
                                         {!hospital.isRealHospital && (
                                             <button
                                                 onClick={(e) => {

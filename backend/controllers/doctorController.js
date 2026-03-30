@@ -167,7 +167,12 @@ const appointmentComplete = async (req, res) => {
                     doctorName: appointmentData.doctor_data.name,
                     speciality: appointmentData.doctor_data.speciality,
                     date: appointmentData.slot_date,
-                    time: appointmentData.slot_time
+                    time: appointmentData.slot_time,
+                    paymentInfo: appointmentData.payment ? {
+                        amount: appointmentData.amount,
+                        method: appointmentData.payment_method || 'Paid Online',
+                        transactionId: appointmentData.transaction_id || 'N/A'
+                    } : null
                 };
 
                 await sendAppointmentCompletionEmail(appointmentData.user_data.email, emailDetails);
@@ -478,7 +483,12 @@ const completeConsultation = async (req, res) => {
                     doctorName: appointment.doctor_data.name,
                     speciality: appointment.doctor_data.speciality,
                     date: appointment.slot_date,
-                    time: appointment.slot_time
+                    time: appointment.slot_time,
+                    paymentInfo: appointment.payment ? {
+                        amount: appointment.amount,
+                        method: appointment.payment_method || 'Paid Online',
+                        transactionId: appointment.transaction_id || 'N/A'
+                    } : null
                 };
                 await sendAppointmentCompletionEmail(appointment.user_data.email, emailDetails);
             } catch (e) { }

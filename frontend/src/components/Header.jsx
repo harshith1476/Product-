@@ -24,7 +24,7 @@ const Header = () => {
                 <div className='flex flex-col sm:flex-row items-stretch sm:items-center gap-3 mt-2 w-full sm:w-auto'>
                     {/* Primary CTA: Book Appointment (Doctors) */}
                     <button
-                        onClick={() => navigate('/doctors')}
+                        onClick={() => navigate('/hospitals')}
                         className='flex items-center justify-center gap-2 bg-white px-6 py-2.5 rounded-full text-[#595959] text-sm font-medium hover:scale-105 transition-all duration-300 cursor-pointer shadow-md'
                     >
                         Book Appointment <img className='w-3' src={assets.arrow_icon} alt="" />

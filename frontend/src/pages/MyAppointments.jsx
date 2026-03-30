@@ -9,6 +9,7 @@ import BackArrow from '../components/BackArrow'
 import LoadingSpinner, { SkeletonAppointment, ButtonSpinner } from '../components/LoadingSpinner'
 import QueueTracker from '../components/QueueTracker'
 import QRCode from 'react-qr-code'
+import PaymentModal from '../components/PaymentModal'
 // Dynamic imports to avoid Vite pre-bundling issues
 
 const MyAppointments = () => {
@@ -26,13 +27,41 @@ const MyAppointments = () => {
     const [appointmentFilter, setAppointmentFilter] = useState('All') // 'All', 'Pending Payment', 'Payment Completed', 'Cancelled'
     const [expandedAppointments, setExpandedAppointments] = useState({}) // Track which appointments have details expanded
     const [expandedQueueStatus, setExpandedQueueStatus] = useState({}) // Track which queue status sections are expanded
+    const [showPaymentModal, setShowPaymentModal] = useState(false)
+    const [selectedAppointmentForPayment, setSelectedAppointmentForPayment] = useState(null)
+    const [isPaymentProcessing, setIsPaymentProcessing] = useState(false)
 
     const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
     // Function to format the date eg. ( 20_01_2000 => 20 Jan 2000 )
     const slotDateFormat = (slotDate) => {
+        if (!slotDate) return 'N/A'
         const dateArray = slotDate.split('_')
-        return dateArray[0] + " " + months[Number(dateArray[1])] + " " + dateArray[2]
+        if (dateArray.length < 3) return slotDate
+        return dateArray[0] + " " + months[Number(dateArray[1]) - 1] + " " + dateArray[2]
+    }
+
+    // Extract MD/MBBS/MS from name or add it based on variety
+    const getDoctorNameWithMD = (name, index, degree) => {
+        if (!name) return 'Doctor'
+        const degrees = ['MD', 'MBBS', 'MS']
+        
+        // Use degree if provided, else rotate based on index, else default to 'MD'
+        let deg = degree;
+        if (!deg || deg === 'undefined') {
+            const idx = typeof index === 'number' ? index : 0;
+            deg = degrees[idx % degrees.length];
+        }
+        if (!deg) deg = 'MD';
+
+        // Add degree in parentheses if not already present
+        let formattedName = name;
+        if (name && !name.includes(`(${deg})`)) {
+            formattedName = `${name} (${deg})`;
+        }
+        
+        // Ensure "Dr. " prefix
+        return formattedName.startsWith('Dr.') ? formattedName : `Dr. ${formattedName}`;
     }
 
     // Generate QR code data for appointment
@@ -89,64 +118,105 @@ Thank you for choosing MediChain Healthcare!
         toast.success('Receipt downloaded successfully')
     }
 
-    // Redirect directly to PayU payment gateway
-    const handlePayOnline = async (item) => {
-        if (!item || !item._id) {
-            toast.error('Invalid appointment data')
-            return
-        }
-        const amount = parseFloat(item.amount || item.costBreakdown?.total || 0)
-        if (!amount || amount <= 0 || isNaN(amount)) {
-            toast.error('Invalid payment amount. Please contact support.')
-            return
-        }
-        if (!token) {
-            toast.error('Please login to make payment')
-            navigate('/login')
-            return
-        }
-        setPayOnlineLoadingId(item._id)
+    // Handle online payment via Razorpay
+    const handlePayOnline = (item) => {
+        setSelectedAppointmentForPayment(item)
+        setShowPaymentModal(true)
+    }
+
+    const onRazorpayPayment = async (appointmentId) => {
+        const item = selectedAppointmentForPayment
+        if (!item || !token) return
+        
+        setIsPaymentProcessing(true)
         try {
+            // Step 1: Create Razorpay order on backend
             const { data } = await axios.post(
-                backendUrl + '/api/user/payment-payu/init',
-                {
-                    appointmentId: item._id.toString(),
-                    amount,
-                    productinfo: 'Appointment Payment',
-                    firstname: item.userData?.name || item.actualPatient?.name || 'Patient',
-                    email: item.userData?.email || '',
-                    phone: item.userData?.phone || item.actualPatient?.phone || ''
-                    // Don't specify pg parameter - let PayU show all payment options including UPI QR
-                },
+                backendUrl + '/api/user/payment-razorpay',
+                { appointmentId: appointmentId.toString() },
                 { headers: { token } }
             )
-            if (!data?.success || !data?.paymentData?.payuUrl) {
-                toast.error(data?.message || 'Failed to initialize payment')
-                setPayOnlineLoadingId(null)
+
+            if (!data?.success || !data?.order) {
+                toast.error(data?.message || 'Failed to initialize Razorpay payment')
+                setIsPaymentProcessing(false)
                 return
             }
-            const payuForm = document.createElement('form')
-            payuForm.method = 'POST'
-            payuForm.action = data.paymentData.payuUrl
-            payuForm.style.display = 'none'
-            Object.keys(data.paymentData).forEach(key => {
-                if (key !== 'payuUrl' && data.paymentData[key] != null) {
-                    const input = document.createElement('input')
-                    input.type = 'hidden'
-                    input.name = key
-                    input.value = String(data.paymentData[key])
-                    payuForm.appendChild(input)
+
+            // Step 2: Build Razorpay options
+            const razorpayOptions = {
+                key: data.order.key_id || import.meta.env.VITE_RAZORPAY_KEY_ID,
+                amount: data.order.amount,
+                currency: data.order.currency || 'INR',
+                name: 'MediChain',
+                description: `Appointment with Dr. ${item.docData?.name || 'Doctor'}`,
+                order_id: data.order.id,
+                handler: async function (response) {
+                    try {
+                        // Step 3: Verify payment signature
+                        const { data: verifyData } = await axios.post(
+                            backendUrl + '/api/user/verifyRazorpay',
+                            {
+                                razorpay_order_id: response.razorpay_order_id,
+                                razorpay_payment_id: response.razorpay_payment_id,
+                                razorpay_signature: response.razorpay_signature
+                            },
+                            { headers: { token } }
+                        )
+                        if (verifyData.success) {
+                            toast.success('Payment successful! Your appointment is confirmed.')
+                            setShowPaymentModal(false)
+                            getUserAppointments()
+                        } else {
+                            toast.error(verifyData.message || 'Payment verification failed.')
+                        }
+                    } catch (err) {
+                        toast.error('Payment verification error')
+                    } finally {
+                        setIsPaymentProcessing(false)
+                    }
+                },
+                modal: {
+                    ondismiss: function () {
+                        setIsPaymentProcessing(false)
+                    }
                 }
-            })
-            document.body.appendChild(payuForm)
-            toast.info('Redirecting to payment gateway...', { autoClose: 2000 })
-            setTimeout(() => payuForm.submit(), 500)
+            }
+
+            const script = document.createElement('script')
+            script.src = 'https://checkout.razorpay.com/v1/checkout.js'
+            script.onload = () => {
+                const rzp = new window.Razorpay(razorpayOptions)
+                rzp.open()
+            }
+            document.body.appendChild(script)
         } catch (err) {
-            console.error('PayU init error:', err)
-            toast.error(err?.response?.data?.message || 'Failed to redirect to payment. Please try again.')
-            setPayOnlineLoadingId(null)
+            toast.error('Failed to start Razorpay flow')
+            setIsPaymentProcessing(false)
         }
     }
+
+    const onStripePayment = async (appointmentId) => {
+        setIsPaymentProcessing(true)
+        try {
+            const { data } = await axios.post(
+                backendUrl + '/api/user/payment-stripe',
+                { appointmentId },
+                { headers: { token } }
+            )
+            if (data.success && data.session_url) {
+                window.location.href = data.session_url
+            } else {
+                toast.error(data.message || 'Stripe failed')
+                setIsPaymentProcessing(false)
+            }
+        } catch (err) {
+            toast.error('Stripe initialization error')
+            setIsPaymentProcessing(false)
+        }
+    }
+
+
 
     // Download OP Form (Out Patient Form) - PDF Format
     const handleDownloadOPForm = async (item) => {
@@ -919,18 +989,17 @@ Thank you for choosing MediChain Healthcare!
                                                     {item.docData?.name ? item.docData.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() : 'DR'}
                                                 </div>
                                             </div>
-
                                             {/* Doctor Details */}
                                             <div className="flex-1 min-w-0">
-                                                <h3 className="font-bold text-gray-900 text-lg sm:text-xl mb-1 truncate">{item.docData.name}</h3>
-                                                <p className="text-blue-600 font-medium text-sm mb-1">{item.docData.speciality}</p>
+                                                <h3 className="font-bold text-gray-900 text-lg sm:text-xl mb-1 truncate">{getDoctorNameWithMD(item.docData?.name || 'Doctor', index, item.docData?.degree || item.docData?.qualification)}</h3>
+                                                <p className="text-blue-600 font-medium text-sm mb-1">{item.docData?.speciality || 'General Medicine'}</p>
                                                 <div className="flex items-center gap-3 text-xs text-gray-600 flex-wrap">
                                                     <div className="flex items-center gap-1">
                                                         <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                                                         </svg>
-                                                        <span className="truncate max-w-[150px]">{item.docData.address?.line1 || 'Address not available'}</span>
+                                                        <span className="truncate max-w-[150px]">{item.docData?.address?.line1 || 'Address not available'}</span>
                                                     </div>
                                                 </div>
                                             </div>
@@ -1096,14 +1165,14 @@ Thank you for choosing MediChain Healthcare!
                                                     {payOnlineLoadingId === item._id ? (
                                                         <>
                                                             <span className="animate-spin inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full" />
-                                                            Redirecting...
+                                                            Opening Razorpay...
                                                         </>
                                                     ) : (
                                                         <>
                                                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
                                                             </svg>
-                                                            {item.paymentMethod === 'payOnVisit' || item.paymentMethod === 'Pay on Visit' ? 'Pay Now' : 'Pay Online'}
+                                                            Pay with Razorpay
                                                         </>
                                                     )}
                                                 </button>
@@ -1190,6 +1259,18 @@ Thank you for choosing MediChain Healthcare!
                     })}
                 </div>
             )}
+            <PaymentModal
+                isOpen={showPaymentModal}
+                onClose={() => setShowPaymentModal(false)}
+                appointment={selectedAppointmentForPayment}
+                onRazorpayPayment={onRazorpayPayment}
+                onStripePayment={onStripePayment}
+                onPayAtClinic={() => {
+                    toast.info('This appointment is already scheduled for Pay at Clinic.')
+                    setShowPaymentModal(false)
+                }}
+                isProcessing={isPaymentProcessing}
+            />
         </div>
     )
 }

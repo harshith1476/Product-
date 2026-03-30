@@ -65,12 +65,14 @@ const BackButton = ({
       'forgot-password': 'Forgot Password',
       'appointment': 'Appointments',
       'appointments': 'Appointments',
-      'doctors': 'Hospitals',
+      'doctors': 'Doctors',
+      'hospitals': 'Hospitals',
+      'all-doctors': 'All Doctors',
       'doctor': 'Doctor',
       'labs': 'Collaborated Labs & Blood Banks',
       'blood-centers': 'Collaborated Blood Banks'
     }
-    if (routeMap[decodedName]) return routeMap[decodedName]
+    if (routeMap[decodedName.toLowerCase()]) return routeMap[decodedName.toLowerCase()]
     
     // If this segment is an ObjectId and we're on a doctor/appointment route, try to get doctor name
     if (isObjectId(decodedName)) {
@@ -125,24 +127,25 @@ const BackButton = ({
     // Decode the segment to check its actual value
     const decodedSegment = segment ? (() => {
       try {
-        return decodeURIComponent(segment)
+        return decodeURIComponent(segment).toLowerCase()
       } catch (e) {
-        return segment
+        return segment.toLowerCase()
       }
     })() : segment
     
-    // Special handling for "Hospitals" or "Doctor" segment - navigate to /doctors
-    // This handles cases where "doctor" or "doctors" appears in displaySegments
-    if (decodedSegment === 'doctor' || decodedSegment === 'doctors' || decodedSegment === 'Hospitals') {
-      navigate('/doctors')
+    // Special handling for specific paths
+    if (decodedSegment === 'doctor' || decodedSegment === 'doctors') {
+      navigate('/all-doctors')
       return
     }
-    
-    // Check if we're clicking on a segment that was transformed in displaySegments
-    // If the original segment at this index is "appointment" but display shows "doctor", navigate to /doctors
-    const originalSegment = segments[index]
-    if (originalSegment === 'appointment' && decodedSegment === 'doctor') {
-      navigate('/doctors')
+
+    if (decodedSegment === 'hospitals') {
+      navigate('/hospitals')
+      return
+    }
+
+    if (decodedSegment === 'appointments' || decodedSegment === 'appointment') {
+      navigate('/my-appointments')
       return
     }
     

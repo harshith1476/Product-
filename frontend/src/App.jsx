@@ -28,15 +28,13 @@ import HospitalDetails from './pages/HospitalDetails'
 import AllDoctorsList from './pages/AllDoctorsList'
 import AppointmentConfirmation from './pages/AppointmentConfirmation'
 import Labs from './pages/Labs'
-import BloodPlus from './pages/BloodPlus'
 import MyLabs from './pages/MyLabs'
 
 const App = () => {
   const location = useLocation()
 
-  // Apply padding for Home and Auth pages. Other pages use .page-container for inner padding so their backgrounds can stretch under navbar
-  const isFullBleedPage = !['/', '/login'].includes(location.pathname)
-  const paddingClass = isFullBleedPage ? 'pt-0' : 'pt-16'
+  // Apply standard top padding to all pages to account for the fixed navbar
+  const paddingClass = 'pt-[72px] sm:pt-[80px]'
 
   return (
     <div className='min-h-screen flex flex-col overflow-x-hidden'>
@@ -85,7 +83,6 @@ const App = () => {
           <Route path='/hospital/:id' element={<HospitalDetails />} />
           <Route path='/labs' element={<Labs />} />
           <Route path='/my-labs' element={<MyLabs />} />
-          <Route path='/blood-plus' element={<BloodPlus />} />
           <Route path='/appointment-confirmation' element={<AppointmentConfirmation />} />
         </Routes>
       </main>

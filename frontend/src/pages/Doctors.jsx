@@ -687,11 +687,28 @@ const Doctors = () => {
                   const doctorImage = fixDoctorImage(doctor)
 
                   // Extract MD from name or add it
-                  const getDoctorNameWithMD = (name) => {
-                    if (name && name.includes('MD')) return name
-                    if (name && name.includes('Dr.')) return `${name}, MD`
-                    return `Dr. ${name}, MD`
-                  }
+                  // Update name formatting to use parentheses for degrees
+                const getDoctorNameWithMD = (name, index, degree) => {
+    if (!name) return 'Doctor'
+    const degrees = ['MD', 'MBBS', 'MS']
+    
+    // Use degree if provided, else rotate based on index, else default to 'MD'
+    let deg = degree;
+    if (!deg || deg === 'undefined') {
+      const idx = typeof index === 'number' ? index : 0;
+      deg = degrees[idx % degrees.length];
+    }
+    if (!deg) deg = 'MD';
+
+    // Add degree in parentheses if not already present
+    let formattedName = name;
+    if (!name.includes(`(${deg})`)) {
+      formattedName = `${name} (${deg})`;
+    }
+    
+    // Ensure "Dr. " prefix
+    return formattedName.startsWith('Dr.') ? formattedName : `Dr. ${formattedName}`;
+  }
 
                   // Get specialty title
                   const getSpecialtyTitle = (specialty) => {
@@ -770,9 +787,8 @@ const Doctors = () => {
                           </div>
                         </div>
 
-                        {/* Name and Degree */}
                         <h3 className='text-xl font-bold text-gray-900 mb-2 line-clamp-2 text-center w-full'>
-                          {getDoctorNameWithMD(doctor.name)}
+                          {getDoctorNameWithMD(doctor.name, index, doctor.degree || doctor.qualification)}
                         </h3>
 
                         {/* Specialty/Title */}
@@ -780,17 +796,9 @@ const Doctors = () => {
                           {getSpecialtyTitle(doctor.specialization || doctor.speciality)}
                         </p>
 
-                        {/* Qualification */}
-                        {(doctor.qualification || doctor.degree) && (
-                          <p className='text-xs text-gray-600 mb-3 line-clamp-1 text-center w-full'>
-                            {doctor.qualification || doctor.degree}
-                          </p>
-                        )}
+                        {/* Qualification line removed as it's already in the name */}
 
-                        {/* Expertise Description */}
-                        <p className='text-xs text-gray-600 mb-6 leading-relaxed min-h-[40px] line-clamp-2 text-center w-full flex-1'>
-                          {getExpertiseText(doctor.specialization || doctor.speciality)}
-                        </p>
+                        {/* Expertise Description removed as requested */}
 
                         {/* Book Appointment Button */}
                         <button
@@ -798,7 +806,7 @@ const Doctors = () => {
                             e.stopPropagation()
                             handleDoctorClick(doctor)
                           }}
-                          className='w-full mt-auto py-2.5 px-4 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-lg transition-all duration-200 flex items-center justify-center gap-2 shadow-md hover:shadow-lg flex-shrink-0'
+                          className='w-full mt-auto h-11 px-4 bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold rounded-lg transition-all duration-200 flex items-center justify-center gap-2 shadow-md hover:shadow-lg flex-shrink-0'
                         >
                           <svg className='w-4 h-4' fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -1157,10 +1165,12 @@ const Doctors = () => {
                       return titleMap[specialty] || `${specialty} Specialist`
                     }
 
-                    // Extract MD from name or add it
-                    const getDoctorNameWithMD = (name) => {
-                      if (name.includes('MD')) return name
-                      return `${name}, MD`
+                    const getDoctorNameWithMD = (name, index, degree) => {
+                      const degrees = ['MD', 'MBBS', 'MS']
+                      const deg = degree || degrees[index % degrees.length]
+                      if (name && name.includes(`(${deg})`)) return name.startsWith('Dr.') ? name : `Dr. ${name}`
+                      if (name && name.includes('Dr.')) return `${name} (${deg})`
+                      return `Dr. ${name} (${deg})`
                     }
 
                     return (
@@ -1198,7 +1208,7 @@ const Doctors = () => {
 
                           {/* Name and Degree */}
                           <h3 className='text-xl font-bold text-gray-900 mb-2 line-clamp-2 text-center w-full'>
-                            {getDoctorNameWithMD(doctor.name)}
+                            {getDoctorNameWithMD(doctor.name, index, doctor.degree || doctor.qualification)}
                           </h3>
 
                           {/* Specialty/Title */}
@@ -1206,10 +1216,7 @@ const Doctors = () => {
                             {getSpecialtyTitle(doctor.speciality || doctor.specialization)}
                           </p>
 
-                          {/* Expertise Description */}
-                          <p className='text-xs text-gray-600 mb-6 leading-relaxed min-h-[40px] line-clamp-2 text-center w-full flex-1'>
-                            {getExpertiseText(doctor.speciality || doctor.specialization)}
-                          </p>
+                          {/* Expertise Description removed as requested */}
 
                           {/* Book Appointment Button */}
                           <button
@@ -1217,7 +1224,7 @@ const Doctors = () => {
                               e.stopPropagation()
                               handleDoctorClick(doctor)
                             }}
-                            className='w-full mt-auto py-2.5 px-4 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-lg transition-all duration-200 flex items-center justify-center gap-2 shadow-md hover:shadow-lg flex-shrink-0'
+                            className='w-full mt-auto h-11 px-4 bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold rounded-lg transition-all duration-200 flex items-center justify-center gap-2 shadow-md hover:shadow-lg flex-shrink-0'
                           >
                             <svg className='w-4 h-4' fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />

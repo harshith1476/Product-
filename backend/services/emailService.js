@@ -1047,7 +1047,8 @@ export const sendAppointmentCompletionEmail = async (email, appointmentDetails) 
             doctorName,
             speciality,
             date,
-            time
+            time,
+            paymentInfo // { amount, method, transactionId }
         } = appointmentDetails;
 
         const senderEmail = process.env.BERVO_SENDER_EMAIL || process.env.BREVO_SENDER_EMAIL || 'medichain123@gmail.com';
@@ -1138,16 +1139,20 @@ export const sendAppointmentCompletionEmail = async (email, appointmentDetails) 
                             color: #1f2937;
                             font-weight: 500;
                         }
-                        .info-box {
-                            background-color: #fef3c7;
-                            border-left: 4px solid #f59e0b;
-                            padding: 15px;
-                            border-radius: 6px;
-                            margin: 20px 0;
+                        .receipt-box {
+                            background-color: #f1f5f9;
+                            border-radius: 8px;
+                            padding: 20px;
+                            margin: 25px 0;
+                            border: 1px dashed #cbd5e1;
                         }
-                        .info-box p {
-                            margin: 8px 0;
-                            color: #92400e;
+                        .receipt-title {
+                            font-weight: 700;
+                            color: #475569;
+                            font-size: 14px;
+                            margin-bottom: 15px;
+                            text-transform: uppercase;
+                            letter-spacing: 1px;
                         }
                         .care-tips {
                             background-color: #dbeafe;
@@ -1220,7 +1225,7 @@ export const sendAppointmentCompletionEmail = async (email, appointmentDetails) 
                             <p>Thank you for choosing MediChain Hospital for your healthcare needs. We hope you had a positive experience during your visit today.</p>
 
                             <div class="appointment-card">
-                                <h2>📋 Your Completed Appointment</h2>
+                                <h2>📋 Visit Details</h2>
                                 
                                 <div class="detail-row">
                                     <div class="detail-label">👨‍⚕️ Doctor:</div>
@@ -1244,6 +1249,24 @@ export const sendAppointmentCompletionEmail = async (email, appointmentDetails) 
                                 </div>
                             </div>
 
+                            ${paymentInfo ? `
+                            <div class="receipt-box">
+                                <div class="receipt-title">🎫 Digital Receipt</div>
+                                <div style="display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 15px;">
+                                    <span style="color: #64748b;">Amount Paid:</span>
+                                    <span style="font-weight: 700; color: #1e293b;">₹${paymentInfo.amount}</span>
+                                </div>
+                                <div style="display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 14px;">
+                                    <span style="color: #64748b;">Payment Method:</span>
+                                    <span style="color: #1e293b;">${paymentInfo.method || 'Cash/Online'}</span>
+                                </div>
+                                <div style="display: flex; justify-content: space-between; font-size: 12px; color: #94a3b8; border-top: 1px solid #e2e8f0; padding-top: 10px; margin-top: 10px;">
+                                    <span>Transaction ID/Ref:</span>
+                                    <span>${paymentInfo.transactionId || 'N/A'}</span>
+                                </div>
+                            </div>
+                            ` : ''}
+
                             <div class="care-tips">
                                 <h3>💊 Post-Consultation Care</h3>
                                 <ul>
@@ -1255,43 +1278,27 @@ export const sendAppointmentCompletionEmail = async (email, appointmentDetails) 
                                 </ul>
                             </div>
 
-                            <div class="info-box">
-                                <p><strong>📄 Medical Records & Reports</strong></p>
-                                <p>Your consultation details and any prescriptions have been saved to your account. You can access them anytime through your patient portal.</p>
-                            </div>
-
-                            <div style="text-align: center; margin: 25px 0;">
+                            <div style="text-align: center; margin: 30px 0;">
                                 <a href="${frontendUrl}/my-appointments" class="button">
-                                    📋 View My Records
-                                </a>
-                                <a href="${frontendUrl}/doctors" class="button button-secondary">
-                                    📅 Book Next Appointment
+                                    📋 View Medical Records
                                 </a>
                             </div>
 
-                            <div style="background-color: #f0fdf4; padding: 20px; border-radius: 8px; margin: 20px 0;">
-                                <p style="margin: 0; color: #166534; text-align: center;">
-                                    <strong>💚 We Value Your Feedback!</strong><br>
-                                    Your opinion helps us improve our services. Please take a moment to rate your experience.
-                                </p>
-                            </div>
-
-                            <p style="font-size: 16px; line-height: 1.8;">
-                                If you have any questions about your treatment, need clarification on prescriptions, or wish to schedule a follow-up appointment, please don't hesitate to contact us.
+                            <p style="font-size: 14px; color: #6b7280; text-align: center;">
+                                <strong>Need assistance?</strong><br>
+                                Reply to this email or contact us at ${senderEmail}
                             </p>
 
-                            <p style="margin-top: 20px;">
-                                Wishing you good health and speedy recovery!<br><br>
-                                Warm regards,<br>
-                                <strong>MediChain Hospital Team</strong>
+                            <p style="margin-top: 30px;">
+                                Wishing you a speedy recovery!<br>
+                                <strong>Team MediChain</strong>
                             </p>
                         </div>
 
                         <div class="footer">
-                            <p><strong>📞 24/7 Support:</strong> Available for any concerns or emergencies</p>
-                            <p>📧 Email: ${senderEmail} | 🌐 Website: ${frontendUrl}</p>
-                            <p style="margin-top: 15px;">© ${new Date().getFullYear()} MediChain Hospital. All rights reserved.</p>
-                            <p>This is an automated email, please do not reply to this message.</p>
+                            <p><strong>🏥 MediChain Hospital</strong></p>
+                            <p>Quality Healthcare for Everyone</p>
+                            <p style="margin-top: 15px;">© ${new Date().getFullYear()} MediChain Healthcare. All rights reserved.</p>
                         </div>
                     </div>
                 </body>
@@ -1300,7 +1307,7 @@ export const sendAppointmentCompletionEmail = async (email, appointmentDetails) 
 
         const result = await sendEmail(
             email,
-            'Thank You for Visiting - MediChain Hospital',
+            'Appointment Completed - MediChain Hospital',
             htmlContent,
             patientName || 'Patient',
             'MediChain'
@@ -1326,6 +1333,7 @@ export const sendAppointmentCompletionEmail = async (email, appointmentDetails) 
         };
     }
 };
+
 
 // Send job interview invitation email when application is approved
 export const sendJobInterviewEmail = async (email, { name, role }) => {
@@ -1749,6 +1757,226 @@ export const sendDoctorWelcomeEmail = async (email, { name, password, employeeId
     } catch (error) {
         console.error('❌ Error sending doctor welcome email:', error);
         return { success: false, message: 'Failed to send welcome email', error: error.message };
+    }
+};
+
+// Send payment confirmation and receipt email
+export const sendPaymentConfirmationEmail = async (email, paymentDetails) => {
+    try {
+        const {
+            patientName,
+            doctorName,
+            speciality,
+            appointmentDate,
+            appointmentTime,
+            amount,
+            transactionId,
+            paymentMethod,
+            orderId,
+            currency = 'INR'
+        } = paymentDetails;
+
+        const senderEmail = process.env.BERVO_SENDER_EMAIL || process.env.BREVO_SENDER_EMAIL || 'medichain123@gmail.com';
+        const htmlContent = `
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <style>
+                        body {
+                            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                            line-height: 1.6;
+                            color: #333;
+                            max-width: 600px;
+                            margin: 0 auto;
+                            padding: 0;
+                            background-color: #f4f4f4;
+                        }
+                        .email-container {
+                            background-color: #ffffff;
+                            margin: 20px;
+                            border-radius: 12px;
+                            overflow: hidden;
+                            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+                        }
+                        .header {
+                            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+                            color: white;
+                            padding: 30px 20px;
+                            text-align: center;
+                        }
+                        .header h1 {
+                            margin: 0;
+                            font-size: 26px;
+                            font-weight: 700;
+                        }
+                        .content {
+                            padding: 30px 25px;
+                        }
+                        .success-banner {
+                            background-color: #ecfdf5;
+                            border: 1px solid #10b981;
+                            border-radius: 8px;
+                            color: #065f46;
+                            padding: 15px;
+                            text-align: center;
+                            font-weight: 600;
+                            margin-bottom: 25px;
+                        }
+                        .receipt-card {
+                            background-color: #f8fafc;
+                            border: 1px solid #e2e8f0;
+                            border-radius: 10px;
+                            padding: 24px;
+                            margin: 20px 0;
+                        }
+                        .receipt-header {
+                            display: flex;
+                            justify-content: space-between;
+                            align-items: center;
+                            border-bottom: 2px dashed #cbd5e1;
+                            padding-bottom: 15px;
+                            margin-bottom: 20px;
+                        }
+                        .receipt-title {
+                            font-size: 18px;
+                            font-weight: 700;
+                            color: #1e293b;
+                            margin: 0;
+                        }
+                        .receipt-row {
+                            display: flex;
+                            justify-content: space-between;
+                            padding: 8px 0;
+                            font-size: 14px;
+                        }
+                        .receipt-label {
+                            color: #64748b;
+                            font-weight: 500;
+                        }
+                        .receipt-value {
+                            color: #1e293b;
+                            font-weight: 600;
+                            text-align: right;
+                        }
+                        .total-row {
+                            border-top: 2px solid #e2e8f0;
+                            margin-top: 15px;
+                            padding-top: 15px;
+                            display: flex;
+                            justify-content: space-between;
+                            font-size: 18px;
+                            font-weight: 800;
+                            color: #10b981;
+                        }
+                        .footer {
+                            background-color: #f8fafc;
+                            padding: 25px;
+                            text-align: center;
+                            color: #6b7280;
+                            font-size: 12px;
+                        }
+                        .transaction-pill {
+                            display: inline-block;
+                            background-color: #f1f5f9;
+                            color: #475569;
+                            padding: 4px 12px;
+                            border-radius: 999px;
+                            font-family: monospace;
+                            font-size: 11px;
+                            margin-top: 15px;
+                        }
+                    </style>
+                </head>
+                <body>
+                    <div class="email-container">
+                        <div class="header">
+                            <h1>💸 Payment Successful</h1>
+                        </div>
+                        <div class="content">
+                            <p>Dear ${patientName},</p>
+                            
+                            <div class="success-banner">
+                                ✓ We've received your payment of ${currency} ${amount}
+                            </div>
+                            
+                            <p>Thank you for your payment. Your appointment with <strong>${doctorName}</strong> is now fully confirmed. Below is your digital payment receipt.</p>
+                            
+                            <div class="receipt-card">
+                                <div class="receipt-header">
+                                    <h2 class="receipt-title">PAYMENT RECEIPT</h2>
+                                    <span style="color: #64748b; font-size: 12px;">#${orderId || 'N/A'}</span>
+                                </div>
+                                
+                                <div class="receipt-row">
+                                    <span class="receipt-label">Patient Name:</span>
+                                    <span class="receipt-value">${patientName}</span>
+                                </div>
+                                <div class="receipt-row">
+                                    <span class="receipt-label">Doctor:</span>
+                                    <span class="receipt-value">${doctorName}</span>
+                                </div>
+                                <div class="receipt-row">
+                                    <span class="receipt-label">Speciality:</span>
+                                    <span class="receipt-value">${speciality}</span>
+                                </div>
+                                <div class="receipt-row">
+                                    <span class="receipt-label">Appointment Date:</span>
+                                    <span class="receipt-value">${appointmentDate}</span>
+                                </div>
+                                <div class="receipt-row">
+                                    <span class="receipt-label">Appointment Time:</span>
+                                    <span class="receipt-value">${appointmentTime}</span>
+                                </div>
+                                <div class="receipt-row">
+                                    <span class="receipt-label">Payment Method:</span>
+                                    <span class="receipt-value">${paymentMethod || 'Online'}</span>
+                                </div>
+                                <div class="receipt-row">
+                                    <span class="receipt-label">Transaction ID:</span>
+                                    <span class="receipt-value">${transactionId}</span>
+                                </div>
+                                
+                                <div class="total-row">
+                                    <span>Amount Paid</span>
+                                    <span>${currency} ${amount}</span>
+                                </div>
+                                
+                                <div style="text-align: center;">
+                                    <div class="transaction-pill">Ref ID: ${transactionId}</div>
+                                </div>
+                            </div>
+                            
+                            <p style="font-size: 14px; color: #64748b; text-align: center;">
+                                Please keep this receipt for your records. If you have any questions, please contact our support team.
+                            </p>
+                            
+                            <p style="margin-top: 25px;">
+                                Stay healthy,<br>
+                                <strong>Team MediChain</strong>
+                            </p>
+                        </div>
+                        <div class="footer">
+                            <p>© ${new Date().getFullYear()} MediChain Healthcare. All rights reserved.</p>
+                            <p>This is an automated receipt generated by our billing system.</p>
+                        </div>
+                    </div>
+                </body>
+                </html>
+            `;
+
+        const result = await sendEmail(
+            email,
+            'Payment Receipt - MediChain+',
+            htmlContent,
+            patientName || 'Patient',
+            'MediChain Billing'
+        );
+
+        return result;
+
+    } catch (error) {
+        console.error('❌ Error sending payment confirmation email:', error);
+        return { success: false, error: error.message };
     }
 };
 

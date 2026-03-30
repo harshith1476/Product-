@@ -54,7 +54,7 @@ const Banner = () => {
                     style={{
                         transform: `translate(${mousePosition.x * 0.3}px, ${mousePosition.y * 0.3}px)`
                     }}
-                    onClick={() => navigate('/collaborated-hospitals')}
+                    onClick={() => navigate('/hospitals')}
                 >
                     <div className='text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-white mb-4 sm:mb-5 md:mb-6'>
                         <h1 className='mb-2 sm:mb-3 bg-gradient-to-r from-white to-blue-100 bg-clip-text text-transparent drop-shadow-md'>

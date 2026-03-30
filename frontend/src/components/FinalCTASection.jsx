@@ -14,7 +14,7 @@ const FinalCTASection = () => {
           Connect with India's top doctors online — only on MediChain
         </p>
         <button
-          onClick={() => navigate('/doctors')}
+          onClick={() => navigate('/hospitals')}
           className="px-10 py-4 bg-white text-cyan-600 rounded-lg font-bold text-lg hover:bg-gray-100 transition-all shadow-xl hover:shadow-2xl transform hover:scale-105"
         >
           👉 Book Appointment Now

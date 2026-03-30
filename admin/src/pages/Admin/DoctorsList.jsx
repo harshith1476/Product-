@@ -194,8 +194,8 @@ const DoctorsList = () => {
                   type="button"
                   onClick={() => setAvailabilityFilter('all')}
                   className={`px-3 py-1.5 rounded-full font-medium transition-colors ${availabilityFilter === 'all'
-                      ? 'bg-white text-indigo-600 shadow-sm'
-                      : 'text-gray-500 hover:text-gray-800'
+                    ? 'bg-white text-indigo-600 shadow-sm'
+                    : 'text-gray-500 hover:text-gray-800'
                     }`}
                 >
                   All
@@ -204,8 +204,8 @@ const DoctorsList = () => {
                   type="button"
                   onClick={() => setAvailabilityFilter('available')}
                   className={`px-3 py-1.5 rounded-full font-medium transition-colors flex items-center gap-1 ${availabilityFilter === 'available'
-                      ? 'bg-white text-green-600 shadow-sm'
-                      : 'text-gray-500 hover:text-gray-800'
+                    ? 'bg-white text-green-600 shadow-sm'
+                    : 'text-gray-500 hover:text-gray-800'
                     }`}
                 >
                   <span className='w-2 h-2 rounded-full bg-green-500'></span>
@@ -215,8 +215,8 @@ const DoctorsList = () => {
                   type="button"
                   onClick={() => setAvailabilityFilter('offline')}
                   className={`px-3 py-1.5 rounded-full font-medium transition-colors flex items-center gap-1 ${availabilityFilter === 'offline'
-                      ? 'bg-white text-red-600 shadow-sm'
-                      : 'text-gray-500 hover:text-gray-800'
+                    ? 'bg-white text-red-600 shadow-sm'
+                    : 'text-gray-500 hover:text-gray-800'
                     }`}
                 >
                   <span className='w-2 h-2 rounded-full bg-red-500'></span>

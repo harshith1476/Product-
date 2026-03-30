@@ -212,7 +212,7 @@ const MyProfile = () => {
                         {/* Subtle decorative elements for "Official" look */}
                         <div className='absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-cyan-500 via-blue-500 to-indigo-500'></div>
                         <div className='absolute top-0 right-0 p-8 opacity-5'>
-                             <svg width="120" height="120" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1"><path d="M12 2v20M2 12h20M7 7l10 10M7 17L17 7"/></svg>
+                            <svg width="120" height="120" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1"><path d="M12 2v20M2 12h20M7 7l10 10M7 17L17 7" /></svg>
                         </div>
 
                         {/* Top Right Header Actions - Premium Glassmorphism */}
@@ -238,12 +238,12 @@ const MyProfile = () => {
                             ) : (
                                 <button
                                     onClick={() => setIsEdit(true)}
-                                    className='group flex items-center gap-3 bg-slate-900 hover:bg-slate-800 border border-slate-800 px-6 py-3 rounded-2xl text-white transition-all active:scale-95 shadow-xl shadow-slate-200'
+                                    className='hidden sm:flex items-center gap-2 bg-slate-100 hover:bg-slate-200 border border-slate-200 px-4 py-2 rounded-xl text-slate-700 transition-all active:scale-95 shadow-sm'
                                 >
-                                    <svg className="w-5 h-5 text-cyan-400 group-hover:rotate-12 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <svg className="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                                     </svg>
-                                    <span className='text-sm font-extrabold tracking-widest uppercase'>Edit Core Profile</span>
+                                    <span className='text-[11px] font-bold uppercase tracking-wider'>Edit</span>
                                 </button>
                             )}
                         </div>
@@ -300,16 +300,17 @@ const MyProfile = () => {
                                 ) : (
                                     <h1 className='text-4xl sm:text-6xl font-black mb-2 tracking-tighter text-slate-900 leading-none'>{userData.name}</h1>
                                 )}
-                                <div className='flex flex-wrap items-center justify-center sm:justify-start gap-4 mt-6'>
-                                    <div className='flex items-center gap-3 bg-slate-100 px-4 py-2 rounded-xl border border-slate-200'>
-                                        <div className='w-2 h-2 bg-indigo-500 rounded-full'></div>
-                                        <span className='text-[10px] text-slate-400 font-black uppercase tracking-widest'>Patient ID</span>
-                                        <p className='text-sm sm:text-base font-mono font-bold text-slate-700 tracking-widest'>#PAT-{userData.id?.toString().padStart(4, '0') || '0001'}</p>
+                                <div className='flex flex-wrap items-center justify-center sm:justify-start gap-3 mt-6'>
+                                    <div className='flex items-center h-10 gap-3 bg-slate-100/80 px-4 rounded-xl border border-slate-200 shadow-sm'>
+                                        <div className='w-2 h-2 bg-indigo-500 rounded-full shrink-0'></div>
+                                        <span className='text-[10px] text-slate-500 font-bold uppercase tracking-[0.15em] whitespace-nowrap leading-none'>Registry ID</span>
+                                        <p className='text-sm font-mono font-bold text-slate-800 tracking-wider leading-none mb-[1px]'>#PAT-{userData.id?.toString().padStart(4, '0') || '0001'}</p>
                                     </div>
-                                    <div className='hidden sm:block h-8 w-px bg-slate-200'></div>
-                                    <div className='flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-50 border border-slate-100'>
-                                        <span className='text-[10px] text-slate-400 font-black uppercase tracking-widest'>Last Sync</span>
-                                        <p className='text-xs font-bold text-slate-600'>Just Now</p>
+                                    <div className='hidden sm:block h-6 w-px bg-slate-200 self-center mx-1'></div>
+                                    <div className='flex items-center h-10 gap-3 bg-slate-50/80 px-4 rounded-xl border border-slate-100 shadow-sm'>
+                                        <div className='w-2 h-2 bg-emerald-400 rounded-full shrink-0 animate-pulse'></div>
+                                        <span className='text-[10px] text-slate-500 font-bold uppercase tracking-[0.15em] whitespace-nowrap leading-none'>Last Updated</span>
+                                        <p className='text-xs font-bold text-slate-600 leading-none mb-[1px]'>Just Now</p>
                                     </div>
                                 </div>
                             </div>
@@ -663,6 +664,17 @@ const MyProfile = () => {
                                     Quick Actions
                                 </h3>
                                 <div className='flex flex-col sm:flex-row gap-3'>
+                                    {!isEdit && (
+                                        <button
+                                            onClick={() => setIsEdit(true)}
+                                            className='flex-1 btn bg-cyan-600 hover:bg-cyan-700 text-white border border-cyan-600 shadow-sm transition-all flex items-center justify-center gap-2 text-xs font-bold uppercase tracking-wider'
+                                        >
+                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                            </svg>
+                                            Edit Profile
+                                        </button>
+                                    )}
                                     <button
                                         onClick={() => navigate('/my-appointments')}
                                         className='flex-1 btn bg-white hover:bg-cyan-50 text-slate-700 border border-slate-200 hover:border-cyan-200 shadow-sm transition-all flex items-center justify-center gap-2'

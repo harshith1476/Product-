@@ -3,14 +3,24 @@ import { assets } from '../assets/assets'
 import { NavLink, useNavigate } from 'react-router-dom'
 import { AppContext } from '../context/AppContext'
 import BrandLogo from './BrandLogo'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger
+} from "./ui/dropdown-menu"
+import { useLocation } from 'react-router-dom'
 
 const Navbar = () => {
   const navigate = useNavigate()
+  const location = useLocation()
   const [showMenu, setShowMenu] = useState(false)
   const [showDropdown, setShowDropdown] = useState(false)
   const { token, setToken, userData } = useContext(AppContext)
   const dropdownRef = useRef(null)
   const menuRef = useRef(null)
+
+  const isAboutActive = location.pathname === '/about' || location.pathname === '/contact'
 
   const logout = () => {
     localStorage.removeItem('token')
@@ -45,52 +55,56 @@ const Navbar = () => {
   return (
     <nav className='fixed top-0 left-0 right-0 bg-white/95 backdrop-blur-md shadow-sm border-b border-gray-200 w-full z-[9999]'>
       <div className='w-full px-4 sm:px-6 lg:px-8 xl:px-12'>
-        <div className='flex items-center justify-between py-2.5'>
+        <div className='flex items-center justify-between py-2 lg:py-2.5'>
 
-          {/* Mobile Navigation - Hamburger Menu Button First, Then Logo */}
-          <div className='flex lg:hidden items-center gap-3 flex-1'>
-            {/* Hamburger Menu Button - Totally to the Left */}
-            <button
-              onClick={() => setShowMenu(!showMenu)}
-              className='p-2 rounded-lg hover:bg-gray-100 transition-colors focus:outline-none flex-shrink-0'
-              aria-label="Menu"
-              aria-expanded={showMenu}
-            >
-              {showMenu ? (
-                <svg className="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              ) : (
-                <svg className="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                </svg>
-              )}
-            </button>
-
-            {/* Official MediChain Logo - After Hamburger */}
-            <div className='flex items-center flex-shrink-0'>
-              <BrandLogo
-                size="mobile"
-                variant="header"
-                clickable={true}
-              />
+          {/* Mobile Navigation Layout - Balanced 3-Column Grid */}
+          <div className='flex lg:hidden items-center justify-between w-full h-14 relative'>
+            {/* Left: Hamburger Button (fixed width to match right side proportions) */}
+            <div className='w-1/4 flex items-center justify-start'>
+              <button
+                onClick={() => setShowMenu(!showMenu)}
+                className='p-2 -ml-2 rounded-xl hover:bg-gray-100 transition-all duration-300 focus:outline-none active:scale-95'
+                aria-label="Menu"
+                aria-expanded={showMenu}
+              >
+                {showMenu ? (
+                  <svg className="w-6 h-6 text-gray-800" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                ) : (
+                  <svg className="w-6 h-6 text-gray-800" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M4 7h16M4 12h16M4 17h16" />
+                  </svg>
+                )}
+              </button>
             </div>
-          </div>
 
-          {/* Emergency Button - Right Side on Mobile */}
-          <div className='flex lg:hidden items-center'>
-            <NavLink
-              to='/emergency'
-              className={({ isActive }) =>
-                `px-2 sm:px-2.5 py-1.5 rounded-lg font-bold text-xs transition-all duration-300 flex items-center gap-1 relative emergency-button-mobile ${isActive
-                  ? 'text-red-600 bg-red-50'
-                  : 'text-red-600 hover:text-red-700 hover:bg-red-50'
-                }`
-              }
-            >
-              <span className="text-sm sm:text-base animate-pulse-emergency">🚨</span>
-              <span className="hidden min-[375px]:inline">Emergency</span>
-            </NavLink>
+            {/* Center: Centered Logo */}
+            <div className='flex-1 flex items-center justify-center'>
+              <div className="scale-110">
+                <BrandLogo
+                  size="mobile"
+                  variant="header"
+                  clickable={true}
+                />
+              </div>
+            </div>
+
+            {/* Right: Emergency Button (fixed width to balance left side) */}
+            <div className='w-1/4 flex items-center justify-end'>
+              <NavLink
+                to='/emergency'
+                className={({ isActive }) =>
+                  `px-3 py-1.5 rounded-full font-bold text-[10px] sm:text-xs transition-all duration-300 flex items-center gap-1.5 border shadow-sm ${isActive
+                    ? 'text-red-700 bg-red-100 border-red-200'
+                    : 'text-red-600 bg-red-50 border-red-100 active:scale-95 hover:bg-red-100'
+                  }`
+                }
+              >
+                <span className="text-sm animate-pulse-emergency">🚨</span>
+                <span className="hidden min-[360px]:inline">EMERGENCY</span>
+              </NavLink>
+            </div>
           </div>
 
           {/* Desktop Logo */}
@@ -104,20 +118,6 @@ const Navbar = () => {
 
           {/* Desktop Navigation */}
           <ul className='hidden lg:flex items-center gap-1'>
-            <li>
-              <NavLink
-                to='/'
-                className={({ isActive }) =>
-                  `nav-link group px-4 py-1.5 rounded-lg font-semibold text-sm transition-all duration-300 relative inline-block ${isActive
-                    ? 'text-cyan-600 bg-cyan-50 active'
-                    : 'text-gray-700 hover:text-cyan-600 hover:bg-gray-50'
-                  }`
-                }
-              >
-                HOME
-                <span className='nav-link-line absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-cyan-500 to-blue-500 transform origin-left transition-transform duration-300 scale-x-0 group-hover:scale-x-100'></span>
-              </NavLink>
-            </li>
             <li>
               <NavLink
                 to='/hospitals'
@@ -160,32 +160,36 @@ const Navbar = () => {
               </NavLink>
             </li>
             <li>
-              <NavLink
-                to='/about'
-                className={({ isActive }) =>
-                  `nav-link group px-4 py-1.5 rounded-lg font-semibold text-sm transition-all duration-300 relative inline-block ${isActive
-                    ? 'text-cyan-600 bg-cyan-50 active'
-                    : 'text-gray-700 hover:text-cyan-600 hover:bg-gray-50'
-                  }`
-                }
-              >
-                ABOUT
-                <span className='nav-link-line absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-cyan-500 to-blue-500 transform origin-left transition-transform duration-300 scale-x-0 group-hover:scale-x-100'></span>
-              </NavLink>
-            </li>
-            <li>
-              <NavLink
-                to='/contact'
-                className={({ isActive }) =>
-                  `nav-link group px-4 py-1.5 rounded-lg font-semibold text-sm transition-all duration-300 relative inline-block ${isActive
-                    ? 'text-cyan-600 bg-cyan-50 active'
-                    : 'text-gray-700 hover:text-cyan-600 hover:bg-gray-50'
-                  }`
-                }
-              >
-                CONTACT
-                <span className='nav-link-line absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-cyan-500 to-blue-500 transform origin-left transition-transform duration-300 scale-x-0 group-hover:scale-x-100'></span>
-              </NavLink>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button
+                    className={`nav-link group px-4 py-1.5 rounded-lg font-semibold text-sm transition-all duration-300 relative inline-flex items-center gap-1 ${isAboutActive
+                      ? 'text-cyan-600 bg-cyan-50 active'
+                      : 'text-gray-700 hover:text-cyan-600 hover:bg-gray-50'
+                      }`}
+                  >
+                    ABOUT
+                    <svg className="w-3.5 h-3.5 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                    <span className='nav-link-line absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-cyan-500 to-blue-500 transform origin-left transition-transform duration-300 scale-x-0 group-hover:scale-x-100'></span>
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="bg-white rounded-md shadow-lg border border-gray-100 py-1 min-w-[150px] z-[99999]" align="end">
+                  <DropdownMenuItem
+                    className="px-4 py-2 text-sm text-gray-700 hover:bg-cyan-50 hover:text-cyan-600 cursor-pointer transition-colors"
+                    onClick={() => navigate('/about')}
+                  >
+                    About Us
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    className="px-4 py-2 text-sm text-gray-700 hover:bg-cyan-50 hover:text-cyan-600 cursor-pointer transition-colors"
+                    onClick={() => navigate('/contact')}
+                  >
+                    Contact Us
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </li>
 
             <li>
@@ -395,25 +399,6 @@ const Navbar = () => {
                   onClick={(e) => {
                     e.preventDefault()
                     e.stopPropagation()
-                    navigate('/')
-                    setTimeout(() => setShowMenu(false), 150)
-                  }}
-                  to='/'
-                  className={({ isActive }) =>
-                    `block px-4 py-2.5 sm:py-3 rounded-lg font-bold text-sm sm:text-base transition-all duration-200 bg-white ${isActive
-                      ? 'text-cyan-600 bg-cyan-50'
-                      : 'text-gray-900 hover:text-cyan-600 hover:bg-gray-50'
-                    }`
-                  }
-                >
-                  HOME
-                </NavLink>
-              </li>
-              <li>
-                <NavLink
-                  onClick={(e) => {
-                    e.preventDefault()
-                    e.stopPropagation()
                     navigate('/hospitals')
                     setTimeout(() => setShowMenu(false), 150)
                   }}
@@ -466,42 +451,25 @@ const Navbar = () => {
                 </NavLink>
               </li>
               <li>
-                <NavLink
-                  onClick={(e) => {
-                    e.preventDefault()
-                    e.stopPropagation()
-                    navigate('/about')
-                    setTimeout(() => setShowMenu(false), 150)
-                  }}
-                  to='/about'
-                  className={({ isActive }) =>
-                    `block px-4 py-2.5 sm:py-3 rounded-lg font-bold text-sm sm:text-base transition-all duration-200 bg-white ${isActive
-                      ? 'text-cyan-600 bg-cyan-50'
-                      : 'text-gray-900 hover:text-cyan-600 hover:bg-gray-50'
-                    }`
-                  }
-                >
+                <div className="px-4 py-2.5 sm:py-3 rounded-lg font-bold text-sm sm:text-base text-gray-900 bg-gray-50/50 mb-1">
                   ABOUT
-                </NavLink>
-              </li>
-              <li>
-                <NavLink
-                  onClick={(e) => {
-                    e.preventDefault()
-                    e.stopPropagation()
-                    navigate('/contact')
-                    setTimeout(() => setShowMenu(false), 150)
-                  }}
-                  to='/contact'
-                  className={({ isActive }) =>
-                    `block px-4 py-2.5 sm:py-3 rounded-lg font-bold text-sm sm:text-base transition-all duration-200 bg-white ${isActive
-                      ? 'text-cyan-600 bg-cyan-50'
-                      : 'text-gray-900 hover:text-cyan-600 hover:bg-gray-50'
-                    }`
-                  }
-                >
-                  CONTACT
-                </NavLink>
+                </div>
+                <div className="ml-4 space-y-1 mb-2">
+                  <NavLink
+                    onClick={() => { navigate('/about'); setShowMenu(false); }}
+                    to='/about'
+                    className={({ isActive }) =>
+                      `block px-4 py-2 rounded-lg font-semibold text-xs sm:text-sm transition-all duration-200 ${isActive ? 'text-cyan-600 bg-cyan-50' : 'text-gray-600 hover:text-cyan-600 hover:bg-gray-50'}`
+                    }
+                  >About Us</NavLink>
+                  <NavLink
+                    onClick={() => { navigate('/contact'); setShowMenu(false); }}
+                    to='/contact'
+                    className={({ isActive }) =>
+                      `block px-4 py-2 rounded-lg font-semibold text-xs sm:text-sm transition-all duration-200 ${isActive ? 'text-cyan-600 bg-cyan-50' : 'text-gray-600 hover:text-cyan-600 hover:bg-gray-50'}`
+                    }
+                  >Contact Us</NavLink>
+                </div>
               </li>
 
               <li>

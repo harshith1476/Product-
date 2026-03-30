@@ -8,6 +8,29 @@ const RelatedDoctors = ({ speciality, docId }) => {
     const { doctors } = useContext(AppContext)
     const [relDoc, setRelDoc] = useState([])
 
+    // Extract MD/MBBS/MS from name or add it based on variety
+    const getDoctorNameWithMD = (name, index, degree) => {
+        if (!name) return 'Doctor'
+        const degrees = ['MD', 'MBBS', 'MS']
+        
+        // Use degree if provided, else rotate based on index, else default to 'MD'
+        let deg = degree;
+        if (!deg || deg === 'undefined') {
+            const idx = typeof index === 'number' ? index : 0;
+            deg = degrees[idx % degrees.length];
+        }
+        if (!deg) deg = 'MD';
+
+        // Add degree in parentheses if not already present
+        let formattedName = name;
+        if (name && !name.includes(`(${deg})`)) {
+            formattedName = `${name} (${deg})`;
+        }
+        
+        // Ensure "Dr. " prefix
+        return formattedName.startsWith('Dr.') ? formattedName : `Dr. ${formattedName}`;
+    }
+
     useEffect(() => {
         if (doctors.length > 0 && speciality) {
             // Filter out null/undefined doctors and filter by specialty
@@ -98,7 +121,7 @@ const RelatedDoctors = ({ speciality, docId }) => {
                         {/* Card Content */}
                         <div className='doctor-card-content'>
                             <h3 className='doctor-card-name'>
-                                {item.name}
+                                {getDoctorNameWithMD(item.name, index, item.degree || item.qualification)}
                             </h3>
                             <p className='doctor-card-specialty'>{item.speciality}</p>
                             
@@ -127,7 +150,7 @@ const RelatedDoctors = ({ speciality, docId }) => {
                                     navigate(`/appointment/${item._id}`);
                                     window.scrollTo(0, 0);
                                 }}
-                                className='w-full mt-3 py-2 px-3 bg-gradient-to-r from-[#007BFF] to-[#41D6C3] text-white text-xs font-semibold rounded-lg shadow-sm hover:shadow-md transition-all duration-200 flex items-center justify-center gap-1.5'
+                                className='w-full mt-auto h-11 px-3 bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold rounded-lg shadow-sm hover:shadow-md transition-all duration-200 flex items-center justify-center gap-1.5'
                             >
                                 <svg className='w-3.5 h-3.5' fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
